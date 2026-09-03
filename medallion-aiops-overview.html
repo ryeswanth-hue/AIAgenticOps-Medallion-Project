@@ -1,0 +1,1003 @@
+<title>Medallion AIOps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* ── Token system ── */
+:root {
+  --bg: #060E1A;
+  --bg-alt: #0A1628;
+  --surface: #0D1F35;
+  --surface-2: #132B47;
+  --surface-3: #1A3558;
+  --border: #1E3A5F;
+  --border-2: #2A4F7A;
+  --text: #E2EDF7;
+  --text-2: #7B9BB5;
+  --text-3: #4A6882;
+
+  --bronze: #CD7F32;
+  --bronze-dim: #7A4B1E;
+  --bronze-glow: rgba(205,127,50,0.18);
+  --silver: #9FB3C8;
+  --silver-dim: #4A6882;
+  --silver-glow: rgba(159,179,200,0.14);
+  --gold: #D4AF37;
+  --gold-dim: #7A6420;
+  --gold-glow: rgba(212,175,55,0.18);
+  --ai: #22D3EE;
+  --ai-dim: #0E6880;
+  --ai-glow: rgba(34,211,238,0.14);
+
+  --p1: #EF4444;
+  --p2: #F97316;
+  --p3: #EAB308;
+  --good: #22C55E;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F2F5FA;
+    --bg-alt: #E8EEF6;
+    --surface: #FFFFFF;
+    --surface-2: #EFF3FB;
+    --surface-3: #E0E8F5;
+    --border: #C8D6E8;
+    --border-2: #A8BFDA;
+    --text: #0D1F35;
+    --text-2: #3D5A78;
+    --text-3: #6B8BA4;
+    --bronze: #A6611E;
+    --bronze-dim: #F5E6D8;
+    --bronze-glow: rgba(166,97,30,0.10);
+    --silver-dim: #E0E8F5;
+    --silver-glow: rgba(100,120,160,0.08);
+    --gold: #9A7B10;
+    --gold-dim: #FBF3D0;
+    --gold-glow: rgba(154,123,16,0.10);
+    --ai: #0891B2;
+    --ai-dim: #E0F6FF;
+    --ai-glow: rgba(8,145,178,0.10);
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F2F5FA; --bg-alt: #E8EEF6; --surface: #FFFFFF;
+  --surface-2: #EFF3FB; --surface-3: #E0E8F5;
+  --border: #C8D6E8; --border-2: #A8BFDA;
+  --text: #0D1F35; --text-2: #3D5A78; --text-3: #6B8BA4;
+  --bronze: #A6611E; --bronze-dim: #F5E6D8; --bronze-glow: rgba(166,97,30,0.10);
+  --silver-dim: #E0E8F5; --silver-glow: rgba(100,120,160,0.08);
+  --gold: #9A7B10; --gold-dim: #FBF3D0; --gold-glow: rgba(154,123,16,0.10);
+  --ai: #0891B2; --ai-dim: #E0F6FF; --ai-glow: rgba(8,145,178,0.10);
+}
+:root[data-theme="dark"] {
+  --bg: #060E1A; --bg-alt: #0A1628; --surface: #0D1F35;
+  --surface-2: #132B47; --surface-3: #1A3558;
+  --border: #1E3A5F; --border-2: #2A4F7A;
+  --text: #E2EDF7; --text-2: #7B9BB5; --text-3: #4A6882;
+  --bronze: #CD7F32; --bronze-dim: #7A4B1E; --bronze-glow: rgba(205,127,50,0.18);
+  --silver: #9FB3C8; --silver-dim: #4A6882; --silver-glow: rgba(159,179,200,0.14);
+  --gold: #D4AF37; --gold-dim: #7A6420; --gold-glow: rgba(212,175,55,0.18);
+  --ai: #22D3EE; --ai-dim: #0E6880; --ai-glow: rgba(34,211,238,0.14);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, .mono { font-family: 'Oxanium', monospace; }
+.mono-code { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Layout ── */
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.hero-canvas-wrap { position: relative; height: 220px; }
+#heroCanvas { width: 100%; height: 100%; display: block; }
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+  padding: 0 24px;
+}
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: var(--ai);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+.hero-title {
+  font-family: 'Oxanium', monospace;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  background: linear-gradient(135deg, var(--bronze) 0%, var(--gold) 40%, var(--ai) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+.hero-sub {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+/* ── NAV BAR ── */
+.navbar {
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+}
+.navbar-logo {
+  font-family: 'Oxanium', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ai);
+  letter-spacing: 0.05em;
+}
+.navbar-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+.navbar-links a {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.navbar-links a:hover { color: var(--text); }
+.theme-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-2);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace; transition: all 0.15s;
+}
+.theme-btn:hover { border-color: var(--border-2); color: var(--text); }
+
+/* ── PIPELINE SECTION ── */
+.section { padding: 64px 0; }
+.section + .section { border-top: 1px solid var(--border); }
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 36px;
+  text-wrap: balance;
+}
+
+/* ── PIPELINE LAYERS ── */
+.pipeline {
+  display: grid;
+  grid-template-columns: 1fr 32px 1fr 32px 1fr 32px 1fr;
+  gap: 0;
+  align-items: start;
+}
+.layer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 20px;
+  position: relative;
+}
+.layer-card.bronze { border-top: 3px solid var(--bronze); }
+.layer-card.silver { border-top: 3px solid var(--silver); }
+.layer-card.gold { border-top: 3px solid var(--gold); }
+.layer-card.ai-layer { border-top: 3px solid var(--ai); }
+.layer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Oxanium', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+.layer-badge.bronze { background: var(--bronze-glow); color: var(--bronze); }
+.layer-badge.silver { background: var(--silver-glow); color: var(--silver); }
+.layer-badge.gold { background: var(--gold-glow); color: var(--gold); }
+.layer-badge.ai-layer { background: var(--ai-glow); color: var(--ai); }
+.layer-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.layer-desc {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.layer-items { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.layer-items li {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.layer-items li::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.bronze .layer-items li::before { background: var(--bronze); }
+.silver .layer-items li::before { background: var(--silver); }
+.gold .layer-items li::before { background: var(--gold); }
+.ai-layer .layer-items li::before { background: var(--ai); }
+.pipeline-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 54px;
+  color: var(--text-3);
+  font-size: 1.1rem;
+}
+
+/* ── DATA FLOW NUMBERS ── */
+.flow-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+}
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.stat-tile .num {
+  font-family: 'Oxanium', monospace;
+  font-size: 1.7rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-tile .lbl { font-size: 0.75rem; color: var(--text-2); }
+.stat-tile.s-bronze .num { color: var(--bronze); }
+.stat-tile.s-silver .num { color: var(--silver); }
+.stat-tile.s-gold .num { color: var(--gold); }
+.stat-tile.s-ai .num { color: var(--ai); }
+
+/* ── AGENTS GRID ── */
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.agent-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.agent-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.agent-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.agent-icon.detect { background: rgba(239,68,68,0.12); }
+.agent-icon.rca { background: rgba(234,179,8,0.12); }
+.agent-icon.remedy { background: rgba(34,197,94,0.12); }
+.agent-icon.report { background: rgba(34,211,238,0.12); }
+.agent-icon.orch { background: rgba(139,92,246,0.12); }
+.agent-name {
+  font-family: 'Oxanium', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.agent-role {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.agent-tools { padding: 14px 20px 18px; }
+.tools-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+.tools-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tool-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface-2);
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.tool-badge::before { content: '@'; color: var(--ai); }
+.tool-badge:hover { border-color: var(--ai); color: var(--ai); background: var(--ai-glow); }
+
+/* ── ORCHESTRATOR (full width) ── */
+.orchestrator-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid;
+  border-image: linear-gradient(90deg, var(--bronze), var(--gold), var(--ai)) 1;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.orch-left { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.orch-icon {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  background: rgba(139,92,246,0.14);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+}
+.orch-name {
+  font-family: 'Oxanium', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #A78BFA;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+.orch-right {}
+.orch-title {
+  font-family: 'Oxanium', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.orch-desc { font-size: 0.8rem; color: var(--text-2); margin-bottom: 12px; line-height: 1.55; }
+.orch-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.orch-step {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface-2);
+  display: flex; align-items: center; gap: 5px;
+}
+.orch-step span { color: var(--gold); font-weight: 500; }
+.orch-arrow { color: var(--text-3); font-size: 0.75rem; }
+
+/* ── API TABLE ── */
+.api-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+thead tr { background: var(--surface-2); }
+th {
+  padding: 10px 16px;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface-2); }
+.method-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.m-get { background: rgba(34,197,94,0.12); color: var(--good); border: 1px solid rgba(34,197,94,0.3); }
+.m-post { background: rgba(34,211,238,0.12); color: var(--ai); border: 1px solid rgba(34,211,238,0.3); }
+.m-patch { background: rgba(234,179,8,0.12); color: var(--gold); border: 1px solid rgba(234,179,8,0.3); }
+.endpoint { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text); }
+td.layer-tag { color: var(--text-3); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+
+/* ── CLI SECTION ── */
+.cli-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.cli-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cli-bar {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cli-dot { width: 9px; height: 9px; border-radius: 50%; }
+.cli-dot.r { background: #EF4444; }
+.cli-dot.y { background: #EAB308; }
+.cli-dot.g { background: #22C55E; }
+.cli-title-bar { margin-left: 8px; font-size: 0.7rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+.cli-body { padding: 14px 16px; }
+.cli-cmd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+.cli-cmd .prompt { color: var(--ai); }
+.cli-comment { color: var(--text-3); font-size: 0.7rem; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 0;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+footer span { color: var(--text-2); }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .pipeline { grid-template-columns: 1fr; }
+  .pipeline-arrow { padding-top: 0; transform: rotate(90deg); }
+  .agents-grid { grid-template-columns: 1fr; }
+  .cli-grid { grid-template-columns: 1fr; }
+  .flow-stats { grid-template-columns: repeat(2, 1fr); }
+  .orchestrator-card { grid-template-columns: 1fr; }
+  .orch-left { flex-direction: row; align-items: center; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-canvas-wrap">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-overlay">
+      <p class="hero-eyebrow">Ecommerce Platform &nbsp;/&nbsp; AIOps &nbsp;/&nbsp; Medallion Architecture</p>
+      <h1 class="hero-title">Incident Detection &amp; Automation RCA</h1>
+      <p class="hero-sub">
+        Multi-agent AI pipeline — Bronze → Silver → Gold data layers, powered by Claude Opus 5 with <span style="font-family:'JetBrains Mono',monospace;font-size:0.85em;color:var(--ai)">@tool</span> decorated agent functions.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <div class="wrap navbar-inner">
+    <span class="navbar-logo">⬡ MEDALLION AIOPS</span>
+    <ul class="navbar-links">
+      <li><a href="#pipeline">Pipeline</a></li>
+      <li><a href="#agents">Agents</a></li>
+      <li><a href="#api">API</a></li>
+      <li><a href="#run">Run</a></li>
+    </ul>
+    <button class="theme-btn" id="themeToggle">◐ theme</button>
+  </div>
+</nav>
+
+<!-- ── Pipeline Section ── -->
+<section class="section" id="pipeline">
+  <div class="wrap">
+    <p class="section-label">Architecture</p>
+    <h2 class="section-title">Medallion Data Pipeline</h2>
+
+    <div class="pipeline">
+      <!-- BRONZE -->
+      <div class="layer-card bronze">
+        <div class="layer-badge bronze">⬡ Bronze</div>
+        <h3 class="layer-title">Raw Ingestion</h3>
+        <p class="layer-desc">
+          Synthetic e-commerce data generated and ingested with zero transformation. Incidents injected into raw streams.
+        </p>
+        <ul class="layer-items">
+          <li>system_metrics.json — 2,016 records</li>
+          <li>transactions.json — 5,000 records</li>
+          <li>app_logs.json — 10,500 records</li>
+          <li>user_events.json — 20,000 records</li>
+          <li>incident_manifest.json — 5 patterns</li>
+        </ul>
+      </div>
+
+      <div class="pipeline-arrow">→</div>
+
+      <!-- SILVER -->
+      <div class="layer-card silver">
+        <div class="layer-badge silver">⬡ Silver</div>
+        <h3 class="layer-title">Clean &amp; Enrich</h3>
+        <p class="layer-desc">
+          Cleaned, normalised records with statistical anomaly detection (Z-score) applied per service.
+        </p>
+        <ul class="layer-items">
+          <li>silver_metrics — error_rate derived</li>
+          <li>silver_logs — error_category tagged</li>
+          <li>silver_transactions — failure_reason</li>
+          <li>is_anomaly + anomaly_type flags</li>
+          <li>latency/cpu/error_rate z-scores</li>
+        </ul>
+      </div>
+
+      <div class="pipeline-arrow">→</div>
+
+      <!-- GOLD -->
+      <div class="layer-card gold">
+        <div class="layer-badge gold">⬡ Gold</div>
+        <h3 class="layer-title">Incident Aggregation</h3>
+        <p class="layer-desc">
+          Anomaly windows merged into discrete incidents. AI classifies severity P1–P4 and enriches with context.
+        </p>
+        <ul class="layer-items">
+          <li>gold_incidents — open/investigating</li>
+          <li>gold_rca — root cause + timeline</li>
+          <li>gold_remediations — action plans</li>
+          <li>gold_reports — HTML dashboards</li>
+          <li>Severity: P1 critical → P4 info</li>
+        </ul>
+      </div>
+
+      <div class="pipeline-arrow">→</div>
+
+      <!-- AI AGENTS -->
+      <div class="layer-card ai-layer">
+        <div class="layer-badge ai-layer">⚡ AI Agents</div>
+        <h3 class="layer-title">Multi-Agent AIOps</h3>
+        <p class="layer-desc">
+          Claude Opus 5 agents with <code class="mono-code" style="font-size:0.7rem;color:var(--ai)">@tool</code> functions call each other in an orchestrated loop.
+        </p>
+        <ul class="layer-items">
+          <li>OrchestratorAgent — coordinates all</li>
+          <li>IncidentDetectionAgent — classifies</li>
+          <li>RCAAgent — root cause analysis</li>
+          <li>RemediationAgent — action plans</li>
+          <li>ReportAgent — HTML dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="flow-stats">
+      <div class="stat-tile s-bronze">
+        <div class="num">37,516</div>
+        <div class="lbl">Bronze records ingested</div>
+      </div>
+      <div class="stat-tile s-silver">
+        <div class="num">3σ</div>
+        <div class="lbl">Z-score anomaly threshold</div>
+      </div>
+      <div class="stat-tile s-gold">
+        <div class="num">5</div>
+        <div class="lbl">Incident patterns injected</div>
+      </div>
+      <div class="stat-tile s-ai">
+        <div class="num">20+</div>
+        <div class="lbl">@tool functions across agents</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Agents Section ── -->
+<section class="section" id="agents">
+  <div class="wrap">
+    <p class="section-label">Multi-Agent System</p>
+    <h2 class="section-title">Agent Definitions &amp; Tools</h2>
+
+    <div class="agents-grid">
+      <!-- Incident Detection -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-icon detect">🔍</div>
+          <div>
+            <div class="agent-name">IncidentDetectionAgent</div>
+            <div class="agent-role">Scans Silver anomalies, correlates error logs, classifies severity, and creates Gold incidents.</div>
+          </div>
+        </div>
+        <div class="agent-tools">
+          <div class="tools-label">@tool functions</div>
+          <div class="tools-list">
+            <span class="tool-badge">query_silver_anomalies</span>
+            <span class="tool-badge">query_error_logs</span>
+            <span class="tool-badge">get_open_incidents</span>
+            <span class="tool-badge">create_incident</span>
+            <span class="tool-badge">get_service_metric_summary</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RCA -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-icon rca">🧠</div>
+          <div>
+            <div class="agent-name">RCAAgent</div>
+            <div class="agent-role">Retrieves metric timelines, log patterns, and correlated failures to identify root cause with confidence score.</div>
+          </div>
+        </div>
+        <div class="agent-tools">
+          <div class="tools-label">@tool functions</div>
+          <div class="tools-list">
+            <span class="tool-badge">get_incident_details</span>
+            <span class="tool-badge">get_metric_timeline</span>
+            <span class="tool-badge">get_incident_logs</span>
+            <span class="tool-badge">get_transaction_failures</span>
+            <span class="tool-badge">get_correlated_services</span>
+            <span class="tool-badge">save_rca</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Remediation -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-icon remedy">🛠</div>
+          <div>
+            <div class="agent-name">RemediationAgent</div>
+            <div class="agent-role">Combines RCA findings with runbook knowledge to generate immediate actions and long-term engineering fixes.</div>
+          </div>
+        </div>
+        <div class="agent-tools">
+          <div class="tools-label">@tool functions</div>
+          <div class="tools-list">
+            <span class="tool-badge">get_incident_for_remediation</span>
+            <span class="tool-badge">get_rca_for_incident</span>
+            <span class="tool-badge">lookup_runbook</span>
+            <span class="tool-badge">save_remediation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report -->
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-icon report">📊</div>
+          <div>
+            <div class="agent-name">ReportAgent</div>
+            <div class="agent-role">Aggregates all Gold-layer data, computes KPIs, writes an executive summary, and generates the HTML dashboard.</div>
+          </div>
+        </div>
+        <div class="agent-tools">
+          <div class="tools-label">@tool functions</div>
+          <div class="tools-list">
+            <span class="tool-badge">get_all_incidents</span>
+            <span class="tool-badge">get_incident_full_summary</span>
+            <span class="tool-badge">get_business_kpis</span>
+            <span class="tool-badge">get_service_health_summary</span>
+            <span class="tool-badge">generate_html_report</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orchestrator -->
+    <div class="orchestrator-card">
+      <div class="orch-left">
+        <div class="orch-icon">🎛</div>
+        <div class="orch-name">Orchestrator</div>
+      </div>
+      <div class="orch-right">
+        <div class="orch-title">OrchestratorAgent — Pipeline Coordinator</div>
+        <p class="orch-desc">
+          Top-level agent that delegates to all four sub-agents in sequence. Uses its own <code class="mono-code" style="font-size:0.8em;color:var(--ai)">@tool</code> functions to trigger each sub-agent, poll pipeline state, and confirm coverage before generating the final report.
+        </p>
+        <div class="orch-flow">
+          <div class="orch-step"><span>1.</span> run_incident_detection</div>
+          <div class="orch-arrow">→</div>
+          <div class="orch-step"><span>2.</span> list_pending_incidents</div>
+          <div class="orch-arrow">→</div>
+          <div class="orch-step"><span>3.</span> run_rca_analysis</div>
+          <div class="orch-arrow">→</div>
+          <div class="orch-step"><span>4.</span> run_remediation</div>
+          <div class="orch-arrow">→</div>
+          <div class="orch-step"><span>5.</span> get_pipeline_status</div>
+          <div class="orch-arrow">→</div>
+          <div class="orch-step"><span>6.</span> run_report_generation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── API Section ── -->
+<section class="section" id="api">
+  <div class="wrap">
+    <p class="section-label">FastAPI REST Layer</p>
+    <h2 class="section-title">API Endpoints</h2>
+
+    <div class="api-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>Description</th>
+            <th>Layer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/incidents</td><td>List incidents — filter by severity, status, hours</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/incidents/{id}</td><td>Get single incident by ID</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/incidents/{id}/full</td><td>Get incident + RCA + remediation combined</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-patch">PATCH</span></td><td class="endpoint">/api/v1/incidents/{id}</td><td>Update incident status / resolved_at</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/metrics</td><td>Query Silver metrics — anomalies_only filter</td><td class="layer-tag">silver</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/metrics/anomaly-summary</td><td>Anomaly counts per service per type</td><td class="layer-tag">silver</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/rca/{id}</td><td>Retrieve stored RCA for an incident</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-post">POST</span></td><td class="endpoint">/api/v1/rca/{id}/trigger</td><td>Trigger RCA agent in background</td><td class="layer-tag">agent</td></tr>
+          <tr><td><span class="method-badge m-get">GET</span></td><td class="endpoint">/api/v1/reports/latest</td><td>Download latest HTML dashboard</td><td class="layer-tag">gold</td></tr>
+          <tr><td><span class="method-badge m-post">POST</span></td><td class="endpoint">/api/v1/reports/generate</td><td>Trigger Report agent in background</td><td class="layer-tag">agent</td></tr>
+          <tr><td><span class="method-badge m-post">POST</span></td><td class="endpoint">/api/v1/pipeline/run</td><td>Run full Medallion + AI pipeline end-to-end</td><td class="layer-tag">pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Run Section ── -->
+<section class="section" id="run">
+  <div class="wrap">
+    <p class="section-label">Getting Started</p>
+    <h2 class="section-title">Run the Pipeline</h2>
+    <div class="cli-grid">
+      <div class="cli-card">
+        <div class="cli-bar">
+          <div class="cli-dot r"></div><div class="cli-dot y"></div><div class="cli-dot g"></div>
+          <span class="cli-title-bar">install</span>
+        </div>
+        <div class="cli-body">
+          <div class="cli-cmd"><span class="prompt">$ </span>pip install -r requirements.txt</div>
+          <div class="cli-cmd" style="margin-top:6px"><span class="prompt">$ </span>cp .env.example .env</div>
+          <div class="cli-comment"># Add ANTHROPIC_API_KEY to .env</div>
+        </div>
+      </div>
+      <div class="cli-card">
+        <div class="cli-bar">
+          <div class="cli-dot r"></div><div class="cli-dot y"></div><div class="cli-dot g"></div>
+          <span class="cli-title-bar">full pipeline</span>
+        </div>
+        <div class="cli-body">
+          <div class="cli-cmd"><span class="prompt">$ </span>python main.py pipeline</div>
+          <div class="cli-comment"># Data gen → Bronze → Silver → Gold → AI</div>
+        </div>
+      </div>
+      <div class="cli-card">
+        <div class="cli-bar">
+          <div class="cli-dot r"></div><div class="cli-dot y"></div><div class="cli-dot g"></div>
+          <span class="cli-title-bar">api server</span>
+        </div>
+        <div class="cli-body">
+          <div class="cli-cmd"><span class="prompt">$ </span>python main.py api</div>
+          <div class="cli-comment"># FastAPI at http://localhost:8000/docs</div>
+        </div>
+      </div>
+      <div class="cli-card">
+        <div class="cli-bar">
+          <div class="cli-dot r"></div><div class="cli-dot y"></div><div class="cli-dot g"></div>
+          <span class="cli-title-bar">individual agents</span>
+        </div>
+        <div class="cli-body">
+          <div class="cli-cmd"><span class="prompt">$ </span>python main.py detect</div>
+          <div class="cli-cmd" style="margin-top:4px"><span class="prompt">$ </span>python main.py rca INC-XXXXXXXX</div>
+          <div class="cli-cmd" style="margin-top:4px"><span class="prompt">$ </span>python main.py report</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>ecommerce-aiops-medallion</span> &nbsp;/&nbsp;
+    Bronze → Silver → Gold → Multi-Agent AI &nbsp;/&nbsp;
+    Claude Opus 5 · @tool decorated functions · FastAPI · SQLite
+  </div>
+</footer>
+
+<script>
+/* ── Theme toggle ── */
+const themeBtn = document.getElementById('themeToggle');
+const themes = ['', 'dark', 'light'];
+let ti = 0;
+themeBtn.addEventListener('click', () => {
+  ti = (ti + 1) % themes.length;
+  document.documentElement.removeAttribute('data-theme');
+  if (themes[ti]) document.documentElement.setAttribute('data-theme', themes[ti]);
+  themeBtn.textContent = ['◐ theme', '◑ dark', '◒ light'][ti];
+});
+
+/* ── Hero canvas animation ── */
+const canvas = document.getElementById('heroCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// Zone definitions: Bronze → Silver → Gold → AI
+const ZONE_COLORS = ['#CD7F32', '#9FB3C8', '#D4AF37', '#22D3EE'];
+const ZONE_LABELS = ['BRONZE', 'SILVER', 'GOLD', 'AI AGENT'];
+
+// Particles
+const particles = [];
+const N = 80;
+for (let i = 0; i < N; i++) {
+  particles.push({
+    x: Math.random() * 1.1,
+    y: 0.1 + Math.random() * 0.8,
+    vx: 0.0005 + Math.random() * 0.001,
+    size: 1.5 + Math.random() * 2.5,
+    zone: Math.floor(Math.random() * 4),
+    alpha: 0.3 + Math.random() * 0.7,
+    pulse: Math.random() * Math.PI * 2,
+  });
+}
+
+function getZoneColor(idx) {
+  return ZONE_COLORS[idx % 4];
+}
+
+function draw(ts) {
+  const W = canvas.width / (window.devicePixelRatio || 1);
+  const H = canvas.height / (window.devicePixelRatio || 1);
+
+  // Background — match CSS variable via computed style
+  const isDark = !document.documentElement.getAttribute('data-theme')
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches
+    : document.documentElement.getAttribute('data-theme') === 'dark';
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Zone bands (subtle)
+  const zoneW = W / 4;
+  ZONE_COLORS.forEach((col, i) => {
+    ctx.fillStyle = col + '12';
+    ctx.fillRect(i * zoneW, 0, zoneW, H);
+  });
+
+  // Zone dividers
+  for (let i = 1; i < 4; i++) {
+    ctx.strokeStyle = isDark ? '#1E3A5F80' : '#C8D6E880';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(i * zoneW, 0);
+    ctx.lineTo(i * zoneW, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Zone labels
+  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.letterSpacing = '0.1em';
+  ZONE_LABELS.forEach((lbl, i) => {
+    ctx.fillStyle = ZONE_COLORS[i] + '80';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, (i + 0.5) * zoneW, 18);
+  });
+
+  // Update & draw particles
+  for (const p of particles) {
+    p.pulse += 0.03;
+    p.x += p.vx;
+    // Zone assignment based on x position
+    p.zone = Math.min(3, Math.floor(p.x * 4 / 1.1));
+
+    // Reset when off-screen
+    if (p.x > 1.05) {
+      p.x = -0.05;
+      p.y = 0.1 + Math.random() * 0.8;
+      p.vx = 0.0005 + Math.random() * 0.001;
+    }
+
+    const px = p.x * W;
+    const py = p.y * H;
+    const col = getZoneColor(p.zone);
+    const pulsedAlpha = p.alpha * (0.6 + 0.4 * Math.sin(p.pulse));
+    const pulsedSize = p.size * (0.8 + 0.2 * Math.sin(p.pulse));
+
+    // Glow
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, pulsedSize * 3);
+    grad.addColorStop(0, col + Math.round(pulsedAlpha * 255).toString(16).padStart(2,'0'));
+    grad.addColorStop(1, col + '00');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, pulsedSize * 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core dot
+    ctx.fillStyle = col;
+    ctx.globalAlpha = pulsedAlpha;
+    ctx.beginPath();
+    ctx.arc(px, py, pulsedSize, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Flow arrows in each zone gap
+  for (let i = 0; i < 3; i++) {
+    const ax = (i + 1) * zoneW;
+    const ay = H / 2;
+    ctx.fillStyle = isDark ? '#ffffff22' : '#00000022';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('›', ax, ay + 5);
+  }
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>

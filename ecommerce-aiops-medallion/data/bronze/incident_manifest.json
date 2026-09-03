@@ -1,0 +1,37 @@
+[
+  {
+    "type": "latency_spike",
+    "service": "payment-service",
+    "start": "2026-09-03T06:20:42.848645",
+    "end": "2026-09-03T07:05:42.848645",
+    "severity": "P1"
+  },
+  {
+    "type": "error_surge",
+    "service": "order-service",
+    "start": "2026-09-03T04:50:42.955074",
+    "end": "2026-09-03T05:20:42.955074",
+    "severity": "P1"
+  },
+  {
+    "type": "payment_failure",
+    "service": "payment-service",
+    "start": "2026-09-03T07:20:43.612625",
+    "end": "2026-09-03T08:20:43.612625",
+    "severity": "P2"
+  },
+  {
+    "type": "memory_leak",
+    "service": "api-gateway",
+    "start": "2026-09-03T02:20:43.846138",
+    "end": "2026-09-03T08:20:43.954180",
+    "severity": "P2"
+  },
+  {
+    "type": "traffic_spike",
+    "service": "search-service",
+    "start": "2026-09-03T04:20:43.993224",
+    "end": "2026-09-03T04:40:43.993224",
+    "severity": "P3"
+  }
+]
